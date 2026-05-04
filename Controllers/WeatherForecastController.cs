@@ -99,15 +99,19 @@ public class WeatherForecastController : ControllerBase
         var extracaoService = new ExtracaoService();
 
         var texto = pdfService.LerPdf(caminho);
-        var cnpj = extracaoService.ExtrairCnpj(texto);
+        Console.WriteLine(texto);
+        var dados = extracaoService.ExtrairDados(texto);
 
         // 6. Criar objeto 
         var doc = new Documento
         {
+
+
             Id = FakeDb.Documentos.Count + 1,
             nomeArquivo = file.FileName,
             Tipo = "NF",
-            ConteudoExtraido = cnpj,
+            ConteudoExtraido = 
+            $"CNPJ Emitente: {dados.DocumentoEmitente} | CNPJ Destinatário: {dados.DocumentoDestinatario} | Valor: {dados.valorTotal}",
             DataUpload = DateTime.Now
         };
 
