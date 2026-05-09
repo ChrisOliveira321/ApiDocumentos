@@ -96,24 +96,19 @@ public class WeatherForecastController : ControllerBase
 
         // 5. Usar services
         var pdfService = new PdfService();
-        var extracaoService = new ExtracaoService();
         var layoutDetector = new LayoutDetectorService();
 
         var texto = pdfService.LerPdf(caminho);
         Console.WriteLine(texto);
-        var dados = extracaoService.ExtrairDados(texto);
         var layout = layoutDetector.Detectar(texto);
 
         // 6. Criar objeto 
         var doc = new Documento
         {
-
-
             Id = FakeDb.Documentos.Count + 1,
             nomeArquivo = file.FileName,
             Tipo = "NF",
-            ConteudoExtraido = 
-            $"CNPJ Emitente: {dados.DocumentoEmitente} | CNPJ Destinatário: {dados.DocumentoDestinatario} | Valor: {dados.valorTotal} | Layout: {layout}",
+            ConteudoExtraido = $"Layout detectado: {layout}",
             DataUpload = DateTime.Now
         };
 

@@ -3,5 +3,8 @@ namespace CrudApi.Enums;
 public enum TipoLayout
 {
     Desconhecido, 
-    DanfePadraoModerno
+    DanfePadraoModerno, 
+    DanfePadraoAntigo, 
+    NFSeMunicipal,
+    NFSeMunicipalVariacao
 }

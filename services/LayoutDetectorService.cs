@@ -1,21 +1,26 @@
-using System.Runtime.CompilerServices;
 using CrudApi.Enums;
-using iText.Layout.Element;
 
 namespace CrudApi.Services;
 
 public class LayoutDetectorService
 {
-    private readonly ExtracaoService _extracaoservice = new ();
-    private readonly LayoutRegistryService _layoutRegistry = new ();
+    private readonly CnpjReaderService _cnpjReader = new();
+    private readonly LayoutRegistryService _layoutRegistry = new();
 
     public TipoLayout Detectar(string texto)
     {
-        var dados = _extracaoservice.ExtrairDados(texto);
+        var cnpjs = _cnpjReader.ExtrairCnpjs(texto);
 
-        var layout = _layoutRegistry.ObterLayout(dados.DocumentoEmitente);
+        foreach (var cnpj in cnpjs)
+        {
+            var layout = _layoutRegistry.ObterLayout(cnpj);
 
-        return layout;
+            if (layout != TipoLayout.Desconhecido)
+            {
+                return layout;
+            }
+        }
+
+        return TipoLayout.Desconhecido;
     }
 }
-
