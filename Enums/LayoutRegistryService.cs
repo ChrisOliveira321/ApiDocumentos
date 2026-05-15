@@ -20,7 +20,7 @@ public class LayoutRegistryService
                 "59.716.660/0001-16", // WorkSystem
                 "03.962.178/0002-92", // Guaiba
                 "78.766.151/0001-42", // Soow Sigma
-                "07.395.076/0001-02", // RKF Nobreaks
+                "07.395.076/0001-02", // RKF Nobreaks | Necessário OCR 
                 "47.960.950/0897-85"  // Teste Magazine Luiza
             }
         },

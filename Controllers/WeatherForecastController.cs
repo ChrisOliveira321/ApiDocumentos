@@ -106,7 +106,7 @@ public class WeatherForecastController : ControllerBase
         var parser = parserRegistry.ObterParser(layout);
         
         string numeroNota = "Parser não encontrado";
-
+        
         if (parser != null)
         {
             numeroNota = parser.ExtrairNumeroNota(texto);

@@ -7,7 +7,8 @@ public class DanfePadraoModernoParser : INotaFiscalParser
 {
     public string ExtrairNumeroNota(string texto)
     {
-        var regex = new Regex(@"N[°º]\s?(\d+)");
+        var regex = new Regex(@"Número da NFS-e.*?\n(\d+)",
+            RegexOptions.Singleline);
 
         var match = regex.Match(texto);
 
