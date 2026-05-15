@@ -1,6 +1,6 @@
-namespace CrudApi.Services; 
+namespace CrudApi.Interfaces;
 
 public interface INotaFiscalParser
 {
-    string ExtrairNumeroNota(string texto);
+    DadosNotaFiscal ExtrairDados(string texto);
 }

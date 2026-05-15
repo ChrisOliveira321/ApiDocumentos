@@ -1,7 +1,14 @@
-
 public class DadosNotaFiscal
 {
-    public string DocumentoEmitente {get; set; }
-    public string DocumentoDestinatario {get; set; }
-    public string valorTotal {get; set;}    
+    public string NumeroNota { get; set; }
+
+    public string DataEmissao { get; set; }
+
+    public string NomeFornecedor { get; set; }
+
+    public string CnpjFornecedor { get; set; }
+
+    public string CnpjCliente { get; set; }
+
+    public string ValorTotal { get; set; }
 }

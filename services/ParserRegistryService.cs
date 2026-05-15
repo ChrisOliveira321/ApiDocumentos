@@ -1,4 +1,5 @@
 using CrudApi.Enums;
+using CrudApi.Interfaces;
 
 namespace CrudApi.Services;
 

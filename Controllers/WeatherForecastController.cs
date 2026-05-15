@@ -103,13 +103,14 @@ public class WeatherForecastController : ControllerBase
         var layout = layoutDetector.Detectar(texto);
 
         var parserRegistry = new ParserRegistryService();
+
         var parser = parserRegistry.ObterParser(layout);
-        
-        string numeroNota = "Parser não encontrado";
-        
+
+        DadosNotaFiscal dados = new();
+
         if (parser != null)
         {
-            numeroNota = parser.ExtrairNumeroNota(texto);
+            dados = parser.ExtrairDados(texto);
         }
 
         // 6. Criar objeto 
@@ -118,7 +119,8 @@ public class WeatherForecastController : ControllerBase
             Id = FakeDb.Documentos.Count + 1,
             nomeArquivo = file.FileName,
             Tipo = "NF",
-            ConteudoExtraido = $"Layout detectado: {layout} | NF: {numeroNota}",
+            ConteudoExtraido =
+                $"Layout: {layout} | NF: {dados.NumeroNota}",
             DataUpload = DateTime.Now
         };
 
