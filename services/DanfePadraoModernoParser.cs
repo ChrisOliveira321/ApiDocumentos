@@ -36,7 +36,19 @@ public class DanfePadraoModernoParser : INotaFiscalParser
 
     private string ExtrairValorTotal(string texto)
     {
-        return null;
+        var regex = new Regex(
+            @"VALOR TOTAL DA NFS-E.*?R\$\s*([\d\.,]+)",
+            RegexOptions.Singleline
+        );
+
+        var match = regex.Match(texto);
+
+        if (match.Success)
+        {
+            return match.Groups[1].Value.Trim();
+        }
+
+        return "Valor não encontrado";
     }
 
     private string ExtrairDataEmissao(string texto)

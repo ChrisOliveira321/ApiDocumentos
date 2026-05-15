@@ -120,7 +120,7 @@ public class WeatherForecastController : ControllerBase
             nomeArquivo = file.FileName,
             Tipo = "NF",
             ConteudoExtraido =
-                $"Layout: {layout} | NF: {dados.NumeroNota}",
+                $"Layout: {layout} | NF: {dados.NumeroNota} | Valor total: {dados.ValorTotal}",
             DataUpload = DateTime.Now
         };
 
