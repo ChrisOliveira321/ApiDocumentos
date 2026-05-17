@@ -1,7 +1,5 @@
 using CrudApi.Data;
-using CrudApi.Repositories;
 using CrudApi.Services;
-using Microsoft.AspNetCore.Http.HttpResults;
 using Microsoft.AspNetCore.Mvc;
 
 
@@ -11,6 +9,13 @@ namespace CrudApi.Controllers;
 [Route("api/documentos")]
 public class WeatherForecastController : ControllerBase
 {
+    private readonly NotaFiscalProcessingService _notaFiscalProcessingService;
+
+    public WeatherForecastController(NotaFiscalProcessingService notaFiscalProcessingService)
+    {
+        _notaFiscalProcessingService = notaFiscalProcessingService;
+    }
+
     // GET - Listar todos   
     [HttpGet]
     public IActionResult getAll()
@@ -95,60 +100,7 @@ public class WeatherForecastController : ControllerBase
             await file.CopyToAsync(stream);
         }          
 
-        // 5. Usar services
-        var pdfService = new PdfService();
-        var layoutDetector = new LayoutDetectorService();
-
-        var texto = pdfService.LerPdf(caminho);
-        Console.WriteLine(texto);
-        var layout = layoutDetector.Detectar(texto);
-
-        var cnpjReader = new CnpjReaderService();
-        var fornecedorRepository = new FornecedorRepository();
-
-        var cnpjs = cnpjReader.ExtrairCnpjs(texto);
-
-        var parserRegistry = new ParserRegistryService();
-
-        var parser = parserRegistry.ObterParser(layout);
-        DadosNotaFiscal dados = parser?.ExtrairDados(texto) ?? new DadosNotaFiscal();
-
-        if (string.IsNullOrWhiteSpace(dados.CnpjFornecedor))
-        {
-            foreach (var cnpj in cnpjs)
-            {
-                var fornecedor = fornecedorRepository.BuscarPorCnpj(cnpj);
-
-                if (fornecedor != null)
-                {
-                    dados.CnpjFornecedor = cnpj;
-
-                    if (string.IsNullOrWhiteSpace(dados.NomeFornecedor))
-                    {
-                        dados.NomeFornecedor = fornecedor.Nome;
-                    }
-
-                    break;
-                }
-            }
-        }
-
-
-        // 6. Criar objeto 
-        var doc = new Documento
-        {
-            Id = FakeDb.Documentos.Count + 1,
-            nomeArquivo = file.FileName,
-            Tipo = "NF",
-            ConteudoExtraido =
-                $"Layout: {layout} |" +
-                $"NF: {dados.NumeroNota} |" +
-                $"NomeFornecedor: {dados.NomeFornecedor} |" +
-                $"CNPJ Fornecedor: {dados.CnpjFornecedor} |" +
-                $"Valor Total: {dados.ValorTotal} |" +
-                $"Data de Emissão: {dados.DataEmissao} |",
-            DataUpload = DateTime.Now
-        };
+        var doc = _notaFiscalProcessingService.ProcessarDocumento(caminho, file.FileName);
 
         // 7. Salvar 
         FakeDb.Documentos.Add(doc);
