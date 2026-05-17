@@ -1,4 +1,5 @@
 using CrudApi.Data;
+using CrudApi.Repositories;
 using CrudApi.Services;
 using Microsoft.AspNetCore.Http.HttpResults;
 using Microsoft.AspNetCore.Mvc;
@@ -102,16 +103,36 @@ public class WeatherForecastController : ControllerBase
         Console.WriteLine(texto);
         var layout = layoutDetector.Detectar(texto);
 
+        var cnpjReader = new CnpjReaderService();
+        var fornecedorRepository = new FornecedorRepository();
+
+        var cnpjs = cnpjReader.ExtrairCnpjs(texto);
+
         var parserRegistry = new ParserRegistryService();
 
         var parser = parserRegistry.ObterParser(layout);
+        DadosNotaFiscal dados = parser?.ExtrairDados(texto) ?? new DadosNotaFiscal();
 
-        DadosNotaFiscal dados = new();
-
-        if (parser != null)
+        if (string.IsNullOrWhiteSpace(dados.CnpjFornecedor))
         {
-            dados = parser.ExtrairDados(texto);
+            foreach (var cnpj in cnpjs)
+            {
+                var fornecedor = fornecedorRepository.BuscarPorCnpj(cnpj);
+
+                if (fornecedor != null)
+                {
+                    dados.CnpjFornecedor = cnpj;
+
+                    if (string.IsNullOrWhiteSpace(dados.NomeFornecedor))
+                    {
+                        dados.NomeFornecedor = fornecedor.Nome;
+                    }
+
+                    break;
+                }
+            }
         }
+
 
         // 6. Criar objeto 
         var doc = new Documento
@@ -123,6 +144,7 @@ public class WeatherForecastController : ControllerBase
                 $"Layout: {layout} |" +
                 $"NF: {dados.NumeroNota} |" +
                 $"NomeFornecedor: {dados.NomeFornecedor} |" +
+                $"CNPJ Fornecedor: {dados.CnpjFornecedor} |" +
                 $"Valor Total: {dados.ValorTotal} |" +
                 $"Data de Emissão: {dados.DataEmissao} |",
             DataUpload = DateTime.Now

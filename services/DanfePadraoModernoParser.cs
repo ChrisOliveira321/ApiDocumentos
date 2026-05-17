@@ -16,7 +16,6 @@ public class DanfePadraoModernoParser : INotaFiscalParser
             DataEmissao = ExtrairDataEmissao(texto),
             CnpjFornecedor = ExtrairCnpjFornecedor(texto),
             CnpjCliente = ExtrairCnpjCliente(texto),
-            
         };
     }
 
@@ -95,16 +94,43 @@ public class DanfePadraoModernoParser : INotaFiscalParser
             return match.Groups[1].Value.Trim();
         }
 
-        return "Data não encontrada";
+        return null;
     }
 
     private string ExtrairCnpjFornecedor(string texto)
     {
-        return null;
+        var regex = new Regex(
+            @"CNPJ\s*(?:/CPF)?\s*[:\-]?\s*(\d{2}\.\d{3}\.\d{3}/\d{4}-\d{2})",
+            RegexOptions.IgnoreCase
+        );
+
+        var match = regex.Match(texto);
+
+        if (match.Success)
+        {
+            return match.Groups[1].Value.Trim();
+        }
+
+        var fallback = new Regex(@"\d{2}\.\d{3}\.\d{3}/\d{4}-\d{2}");
+        match = fallback.Match(texto);
+
+        return match.Success ? match.Value.Trim() : null;
     }
 
     private string ExtrairCnpjCliente(string texto)
     {
+        var regex = new Regex(
+            @"CNPJ.*?cliente.*?(\d{2}\.\d{3}\.\d{3}/\d{4}-\d{2})",
+            RegexOptions.Singleline | RegexOptions.IgnoreCase
+        );
+
+        var match = regex.Match(texto);
+
+        if (match.Success)
+        {
+            return match.Groups[1].Value.Trim();
+        }
+
         return null;
     }
 }
