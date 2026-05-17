@@ -55,7 +55,7 @@ public class DanfePadraoModernoParser : INotaFiscalParser
 
     private string ExtrairNomeFornecedor(string texto)
     {
-         texto = texto.ToLower();
+        texto = texto.ToLower();
 
         var regex = new Regex(
             @"nome\s*\/\s*nome\s*empresarial.*?\n([^\n]+)"
@@ -67,7 +67,13 @@ public class DanfePadraoModernoParser : INotaFiscalParser
         {
             var linha = match.Groups[1].Value.Trim();
 
-            var partes = linha.Split(" ");
+            // Se tiver email, remove
+            if (linha.Contains("@"))
+            {
+                var regexEmail = new Regex(@"\S+@\S+");
+
+                linha = regexEmail.Replace(linha, "").Trim();
+            }
 
             return linha;
         }

@@ -1,20 +1,20 @@
 {
   "format": 1,
   "restore": {
-    "/home/christian/Documentos/CSharp/CRUD/CrudApi/CrudApi.csproj": {}
+    "C:\\Users\\christian.leite\\Documents\\Argus\\ApiDocumentos\\CrudApi.csproj": {}
   },
   "projects": {
-    "/home/christian/Documentos/CSharp/CRUD/CrudApi/CrudApi.csproj": {
+    "C:\\Users\\christian.leite\\Documents\\Argus\\ApiDocumentos\\CrudApi.csproj": {
       "version": "1.0.0",
       "restore": {
-        "projectUniqueName": "/home/christian/Documentos/CSharp/CRUD/CrudApi/CrudApi.csproj",
+        "projectUniqueName": "C:\\Users\\christian.leite\\Documents\\Argus\\ApiDocumentos\\CrudApi.csproj",
         "projectName": "CrudApi",
-        "projectPath": "/home/christian/Documentos/CSharp/CRUD/CrudApi/CrudApi.csproj",
-        "packagesPath": "/home/christian/.nuget/packages/",
-        "outputPath": "/home/christian/Documentos/CSharp/CRUD/CrudApi/obj/",
+        "projectPath": "C:\\Users\\christian.leite\\Documents\\Argus\\ApiDocumentos\\CrudApi.csproj",
+        "packagesPath": "C:\\Users\\christian.leite\\.nuget\\packages\\",
+        "outputPath": "C:\\Users\\christian.leite\\Documents\\Argus\\ApiDocumentos\\obj\\",
         "projectStyle": "PackageReference",
         "configFilePaths": [
-          "/home/christian/.nuget/NuGet/NuGet.Config"
+          "C:\\Users\\christian.leite\\AppData\\Roaming\\NuGet\\NuGet.Config"
         ],
         "originalTargetFrameworks": [
           "net8.0"
@@ -32,6 +32,11 @@
           "warnAsError": [
             "NU1605"
           ]
+        },
+        "restoreAuditProperties": {
+          "enableAudit": "true",
+          "auditLevel": "low",
+          "auditMode": "direct"
         }
       },
       "frameworks": {
@@ -70,7 +75,7 @@
               "privateAssets": "all"
             }
           },
-          "runtimeIdentifierGraphPath": "/usr/lib/dotnet/sdk/8.0.126/PortableRuntimeIdentifierGraph.json"
+          "runtimeIdentifierGraphPath": "C:\\Program Files\\dotnet\\sdk\\8.0.420/PortableRuntimeIdentifierGraph.json"
         }
       }
     }
