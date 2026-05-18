@@ -38,6 +38,8 @@ public class NotaFiscalProcessingService
         var parser = _parserRegistry.ObterParser(layout);
         var dados = parser?.ExtrairDados(texto) ?? new DadosNotaFiscal();
 
+        Console.WriteLine(texto);
+
         var cnpjs = _cnpjReader.ExtrairCnpjs(texto);
         PreencherDadosFornecedor(dados, cnpjs);
         PreencherDadosCliente(dados, cnpjs);

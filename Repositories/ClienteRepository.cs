@@ -38,6 +38,12 @@ public class ClienteRepository
             Cnpj = "59.748.580/0001-42",
             Centro = "6001"
         },
+        new Cliente
+        {
+            Nome = "Az 04",
+            Cnpj = "81.716.144/0005-74",
+            Centro = "1005"
+        },
     };
 
     public Cliente BuscarPorCnpj(string cnpj)
