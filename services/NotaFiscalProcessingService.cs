@@ -12,6 +12,7 @@ public class NotaFiscalProcessingService
     private readonly LayoutDetectorService _layoutDetector;
     private readonly CnpjReaderService _cnpjReader;
     private readonly FornecedorRepository _fornecedorRepository;
+    private readonly ClienteRepository _clienteRepository;
     private readonly ParserRegistryService _parserRegistry;
 
     public NotaFiscalProcessingService(
@@ -19,12 +20,14 @@ public class NotaFiscalProcessingService
         LayoutDetectorService layoutDetector,
         CnpjReaderService cnpjReader,
         FornecedorRepository fornecedorRepository,
+        ClienteRepository clienteRepository,
         ParserRegistryService parserRegistry)
     {
         _pdfService = pdfService;
         _layoutDetector = layoutDetector;
         _cnpjReader = cnpjReader;
         _fornecedorRepository = fornecedorRepository;
+        _clienteRepository = clienteRepository;
         _parserRegistry = parserRegistry;
     }
 
@@ -37,7 +40,7 @@ public class NotaFiscalProcessingService
 
         var cnpjs = _cnpjReader.ExtrairCnpjs(texto);
         PreencherDadosFornecedor(dados, cnpjs);
-
+        PreencherDadosCliente(dados, cnpjs);
         return new Documento
         {
             Id = FakeDb.Documentos.Count + 1,
@@ -71,6 +74,27 @@ public class NotaFiscalProcessingService
                 dados.NomeFornecedor = fornecedor.Nome;
             }
 
+            break;
+        }
+    }
+
+    private void PreencherDadosCliente(DadosNotaFiscal dados, List<string> cnpjs)
+    {
+        if (!string.IsNullOrWhiteSpace(dados.CnpjCliente))
+        {
+            return;
+        }
+
+        foreach (var cnpj in cnpjs)
+        {
+            var cliente = _clienteRepository.BuscarPorCnpj(cnpj);
+
+            if (cliente == null)
+            {
+                continue;
+            }
+
+            dados.CnpjCliente = cnpj;
             break;
         }
     }

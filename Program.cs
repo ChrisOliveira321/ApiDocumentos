@@ -11,6 +11,7 @@ builder.Services.AddSingleton<PdfService>();
 builder.Services.AddSingleton<LayoutDetectorService>();
 builder.Services.AddSingleton<CnpjReaderService>();
 builder.Services.AddSingleton<FornecedorRepository>();
+builder.Services.AddSingleton<ClienteRepository>();
 builder.Services.AddSingleton<ParserRegistryService>();
 builder.Services.AddSingleton<NotaFiscalProcessingService>();
 
