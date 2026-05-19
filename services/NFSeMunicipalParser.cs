@@ -82,18 +82,17 @@ public class NFSeMunicipalParser : INotaFiscalParser
 
     private string ExtrairDataEmissao(string texto)
     {
-        var regex = new Regex(
-            @"Data e Hora da emissão da NFS-e.*?\n\d+\s+(\d{2}/\d{2}/\d{4})",
-            RegexOptions.Singleline
+        var match = Regex.Match(
+            texto,
+            @"Data e Hora de Emissão\s+.*?\s+(?<data>\d{2}/\d{2}/\d{4})",
+            RegexOptions.Singleline | RegexOptions.IgnoreCase
         );
-
-        var match = regex.Match(texto);
 
         if (match.Success)
         {
-            return match.Groups[1].Value.Trim();
+            return match.Groups["data"].Value.Trim();
         }
 
-        return null;
+        return "Data não encontrada";
     }
 }
