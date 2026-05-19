@@ -35,19 +35,18 @@ public class NFSeMunicipalParser : INotaFiscalParser
 
         return "Número não encontrado";
     }
-    
+
     private string ExtrairValorTotal(string texto)
     {
-        var regex = new Regex(
-            @"VALOR TOTAL DA NFS-E.*?R\$\s*([\d\.,]+)",
-            RegexOptions.Singleline
+        var match = Regex.Match(
+            texto,
+            @"VALOR TOTAL DO SERVIÇO\s*=\s*R\$\s*(?<valor>[\d\.,]+)",
+            RegexOptions.Singleline | RegexOptions.IgnoreCase
         );
-
-        var match = regex.Match(texto);
 
         if (match.Success)
         {
-            return match.Groups[1].Value.Trim();
+            return match.Groups["valor"].Value.Trim();
         }
 
         return "Valor não encontrado";
