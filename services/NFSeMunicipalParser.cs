@@ -21,21 +21,21 @@ public class NFSeMunicipalParser : INotaFiscalParser
     private string ExtrairNumeroNota(string texto)
     {
         Console.WriteLine("ENTROU NO NFSeMunicipalParser");
-        var matches = Regex.Matches(texto, @"\b\d{8}\b");
 
-        foreach (Match match in matches)
+        var match = Regex.Match(
+            texto,
+            @"Número da Nota\s+.*?\s+(?<numero>\d{8})",
+            RegexOptions.Singleline | RegexOptions.IgnoreCase
+        );
+
+        if (match.Success)
         {
-            var numero = match.Value.TrimStart('0');
-
-            if (!string.IsNullOrWhiteSpace(numero))
-            {
-                return numero;
-            }
+            return match.Groups["numero"].Value.TrimStart('0');
         }
 
         return "Número não encontrado";
     }
-
+    
     private string ExtrairValorTotal(string texto)
     {
         var regex = new Regex(
