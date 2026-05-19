@@ -16,9 +16,11 @@ public class ParserRegistryService
     {
         if (_parsers.ContainsKey(layout))
         {
+            Console.WriteLine($"ParserRegistryService: parser encontrado para layout {layout}");
             return _parsers[layout];
         }
 
+        Console.WriteLine($"ParserRegistryService: parser não encontrado para layout {layout}");
         return null;
     }
 }

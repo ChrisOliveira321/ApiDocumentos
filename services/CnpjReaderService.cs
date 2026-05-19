@@ -17,6 +17,7 @@ public class CnpjReaderService
             cnpjs.Add(match.Value);
         }
 
+        Console.WriteLine($"CnpjReaderService: encontrou {cnpjs.Count} CNPJs");
         return cnpjs;
     }
 }

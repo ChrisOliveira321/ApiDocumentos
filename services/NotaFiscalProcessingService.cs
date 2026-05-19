@@ -35,7 +35,9 @@ public class NotaFiscalProcessingService
     {
         var texto = _pdfService.LerPdf(caminho);
         var layout = _layoutDetector.Detectar(texto);
+        Console.WriteLine($"Layout detectado: {layout}");
         var parser = _parserRegistry.ObterParser(layout);
+        Console.WriteLine($"Parser selecionado: {(parser != null ? parser.GetType().Name : "null")}");
         var dados = parser?.ExtrairDados(texto) ?? new DadosNotaFiscal();
 
         Console.WriteLine(texto);

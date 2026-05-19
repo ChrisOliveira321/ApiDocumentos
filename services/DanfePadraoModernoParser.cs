@@ -1,35 +1,53 @@
 using System.Text.RegularExpressions;
 using CrudApi.Enums;
 using CrudApi.Interfaces;
+using CrudApi.Repositories;
 
-namespace CrudApi.Services; 
+namespace CrudApi.Services;
 
 public class DanfePadraoModernoParser : INotaFiscalParser
 {
     public DadosNotaFiscal ExtrairDados(string texto)
     {
-        return new DadosNotaFiscal
+        var dados = new DadosNotaFiscal
         {
             NumeroNota = ExtrairNumeroNota(texto),
-            NomeFornecedor = ExtrairNomeFornecedor(texto),
             ValorTotal = ExtrairValorTotal(texto),
             DataEmissao = ExtrairDataEmissao(texto),
         };
 
-        Console.WriteLine("ENTROU NO DanfePadraoModernoParser");
+        var cnpj = ExtrairCnpjFornecedor(texto);
+
+        if (!string.IsNullOrWhiteSpace(cnpj))
+        {
+            dados.CnpjFornecedor = cnpj;
+            var repo = new FornecedorRepository();
+            var fornecedor = repo.BuscarPorCnpj(cnpj);
+
+            if (fornecedor != null)
+            {
+                dados.NomeFornecedor = fornecedor.Nome;
+                return dados;
+            }
+        }
+
+        dados.NomeFornecedor = ExtrairNomeFornecedor(texto);
+        return dados;
     }
 
     private string ExtrairValorTotal(string texto)
     {
+        Console.WriteLine("DanfePadraoModernoParser: ExtrairValorTotal chamado");
         var regex = new Regex(
             @"VALOR TOTAL DA NFS-E.*?R\$\s*([\d\.,]+)",
-            RegexOptions.Singleline
+            RegexOptions.Singleline | RegexOptions.IgnoreCase
         );
 
         var match = regex.Match(texto);
 
         if (match.Success)
         {
+            Console.WriteLine($"DanfePadraoModernoParser: ValorTotal regex encontrou: {match.Groups[1].Value}");
             return match.Groups[1].Value.Trim();
         }
 
@@ -38,9 +56,10 @@ public class DanfePadraoModernoParser : INotaFiscalParser
     
     private string ExtrairNumeroNota(string texto)
     {
+        Console.WriteLine("DanfePadraoModernoParser: ExtrairNumeroNota chamado");
         var regex = new Regex(
             @"Número da NFS-e.*?\n(\d+)",
-            RegexOptions.Singleline);
+            RegexOptions.Singleline | RegexOptions.IgnoreCase);
 
         var match = regex.Match(texto);
 
@@ -82,45 +101,9 @@ public class DanfePadraoModernoParser : INotaFiscalParser
 
     private string ExtrairDataEmissao(string texto)
     {
+        Console.WriteLine("DanfePadraoModernoParser: ExtrairDataEmissao chamado");
         var regex = new Regex(
             @"Data e Hora da emissão da NFS-e.*?\n\d+\s+(\d{2}/\d{2}/\d{4})",
-            RegexOptions.Singleline
-        );
-
-        var match = regex.Match(texto);
-
-        if (match.Success)
-        {
-            return match.Groups[1].Value.Trim();
-        }
-
-        return null;
-    }
-
-    /*private string ExtrairCnpjFornecedor(string texto)
-    {
-        var regex = new Regex(
-            @"CNPJ\s*(?:/CPF)?\s*[:\-]?\s*(\d{2}\.\d{3}\.\d{3}/\d{4}-\d{2})",
-            RegexOptions.IgnoreCase
-        );
-
-        var match = regex.Match(texto);
-
-        if (match.Success)
-        {
-            return match.Groups[1].Value.Trim();
-        }
-
-        var fallback = new Regex(@"\d{2}\.\d{3}\.\d{3}/\d{4}-\d{2}");
-        match = fallback.Match(texto);
-
-        return match.Success ? match.Value.Trim() : null;
-    }
-
-    private string ExtrairCnpjCliente(string texto)
-    {
-        var regex = new Regex(
-            @"CNPJ.*?cliente.*?(\d{2}\.\d{3}\.\d{3}/\d{4}-\d{2})",
             RegexOptions.Singleline | RegexOptions.IgnoreCase
         );
 
@@ -132,5 +115,20 @@ public class DanfePadraoModernoParser : INotaFiscalParser
         }
 
         return null;
-    }*/
+    }
+
+    private string ExtrairCnpjFornecedor(string texto)
+    {
+        if (string.IsNullOrWhiteSpace(texto)) return null;
+
+        var regex = new Regex(@"\d{2}\.\d{3}\.\d{3}/\d{4}-\d{2}|\d{14}");
+        var match = regex.Match(texto);
+
+        if (match.Success)
+        {
+            return match.Value.Trim();
+        }
+
+        return null;
+    }
 }

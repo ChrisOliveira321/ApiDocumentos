@@ -91,7 +91,21 @@ public class FornecedorRepository
 
     public Fornecedor BuscarPorCnpj(string cnpj)
     {
-        return _fornecedores
+        if (string.IsNullOrWhiteSpace(cnpj)) return null;
+
+        var exactMatch = _fornecedores
             .FirstOrDefault(f => f.Cnpj == cnpj);
+
+        if (exactMatch != null)
+        {
+            return exactMatch;
+        }
+
+        static string Normalize(string value) => new string((value ?? string.Empty).Where(char.IsDigit).ToArray());
+
+        var search = Normalize(cnpj);
+
+        return _fornecedores
+            .FirstOrDefault(f => Normalize(f.Cnpj) == search);
     }
 }
