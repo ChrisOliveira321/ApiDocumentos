@@ -18,6 +18,13 @@ public class FornecedorRepository
         // DANFE PADRÃO MODERNO
         new Fornecedor
         {
+            Nome = "Fornecedor A",
+            Cnpj = "11.111.111/0001-11",
+            Layout = TipoLayout.DanfePadraoModerno
+        },
+
+        new Fornecedor
+        {
             Nome = "WorkSystem",
             Cnpj = "59.716.660/0001-16",
             Layout = TipoLayout.DanfePadraoModerno
@@ -52,6 +59,13 @@ public class FornecedorRepository
         },
 
         // NFS-e MUNICIPAL
+        new Fornecedor
+        {
+            Nome = "Fornecedor B",
+            Cnpj = "22.222.222/0002-22",
+            Layout = TipoLayout.NFSeMunicipal
+        },
+
         new Fornecedor
         {
             Nome = "Engine",
