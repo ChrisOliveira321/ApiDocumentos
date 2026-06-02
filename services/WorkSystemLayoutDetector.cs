@@ -33,8 +33,8 @@ public class WorkSystemLayoutDetector : ILayoutDetector
             return TipoLayout.DanfeProdutoModerno;
         }
 
-        // Fallback for WorkSystem: DanfeProduto (antigo)
-        Console.WriteLine("WorkSystemLayoutDetector: fallback para DanfeProduto");
-        return TipoLayout.DanfeProduto;
+        // Fallback for WorkSystem: DanfeProdutoAntigo (antigo)
+        Console.WriteLine("WorkSystemLayoutDetector: fallback para DanfeProdutoAntigo");
+        return TipoLayout.DanfeProdutoAntigo;
     }
 }

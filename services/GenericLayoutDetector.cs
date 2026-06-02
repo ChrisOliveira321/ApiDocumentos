@@ -28,8 +28,8 @@ public class GenericLayoutDetector : ILayoutDetector
         // Try antigo DANFE simple heuristic
         if (t.Contains("Nº") && t.Contains("DATA DA EMISSÃO") && t.Contains("VALOR TOTAL"))
         {
-            Console.WriteLine("GenericLayoutDetector: detectado DanfeProduto");
-            return TipoLayout.DanfeProduto;
+            Console.WriteLine("GenericLayoutDetector: detectado DanfeProdutoAntigo");
+            return TipoLayout.DanfeProdutoAntigo;
         }
 
         return TipoLayout.Desconhecido;

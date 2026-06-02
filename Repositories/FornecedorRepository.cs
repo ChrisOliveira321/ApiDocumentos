@@ -7,12 +7,12 @@ public class FornecedorRepository
 {
     private readonly List<Fornecedor> _fornecedores = new()
     {
-        // DANFE PRODUTO 
+        // DANFE PRODUTO ANTIGO 
         new Fornecedor
         {
             Nome = "WorkSystem",
             Cnpj = "59.716.660/0001-16",
-            Layout = TipoLayout.DanfeProduto
+            Layout = TipoLayout.DanfeProdutoAntigo
         },
 
         // DANFE PADRÃO MODERNO

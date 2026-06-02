@@ -5,7 +5,7 @@ public enum TipoLayout
     Desconhecido, 
     DanfePadraoModerno, 
     DanfeProdutoModerno,
-    DanfeProduto, 
+    DanfeProdutoAntigo, 
     NFSeMunicipal,
     NFSeMunicipalVariacao
 }
