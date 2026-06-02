@@ -4871,11 +4871,11 @@
   "project": {
     "version": "1.0.0",
     "restore": {
-      "projectUniqueName": "C:\\Users\\christian.leite\\Documents\\Argus\\ApiDocumentos\\CrudApi.csproj",
+      "projectUniqueName": "C:\\Users\\christian.leite\\OneDrive - Rocha Terminais Portuários e Logística S.A\\Documentos\\Argus\\ApiDocumentos\\CrudApi.csproj",
       "projectName": "CrudApi",
-      "projectPath": "C:\\Users\\christian.leite\\Documents\\Argus\\ApiDocumentos\\CrudApi.csproj",
+      "projectPath": "C:\\Users\\christian.leite\\OneDrive - Rocha Terminais Portuários e Logística S.A\\Documentos\\Argus\\ApiDocumentos\\CrudApi.csproj",
       "packagesPath": "C:\\Users\\christian.leite\\.nuget\\packages\\",
-      "outputPath": "C:\\Users\\christian.leite\\Documents\\Argus\\ApiDocumentos\\obj\\",
+      "outputPath": "C:\\Users\\christian.leite\\OneDrive - Rocha Terminais Portuários e Logística S.A\\Documentos\\Argus\\ApiDocumentos\\obj\\",
       "projectStyle": "PackageReference",
       "configFilePaths": [
         "C:\\Users\\christian.leite\\AppData\\Roaming\\NuGet\\NuGet.Config"

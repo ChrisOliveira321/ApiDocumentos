@@ -4,7 +4,8 @@ public enum TipoLayout
 {
     Desconhecido, 
     DanfePadraoModerno, 
-    DanfePadraoAntigo, 
+    DanfeProdutoModerno,
+    DanfeProduto, 
     NFSeMunicipal,
     NFSeMunicipalVariacao
 }

@@ -7,6 +7,8 @@ public class ParserRegistryService
 {
     private readonly Dictionary<TipoLayout, INotaFiscalParser> _parsers = new()
     {
+        { TipoLayout.DanfeProdutoModerno, new DanfeProdutoModernoParser() },
+        { TipoLayout.DanfeProduto, new DanfeProdutoParser() },
         { TipoLayout.DanfePadraoModerno, new DanfePadraoModernoParser() },
         { TipoLayout.NFSeMunicipal, new NFSeMunicipalParser() },
         { TipoLayout.NFSeMunicipalVariacao, new NFSeMunicipalParser() }
