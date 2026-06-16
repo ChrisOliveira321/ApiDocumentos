@@ -8,18 +8,18 @@ namespace CrudApi.Controllers;
 
 [ApiController]
 [Route("api/documentos")]
-public class WeatherForecastController : ControllerBase
+public class DocumentosController : ControllerBase
 {
     private readonly DocumentoRepository _documentoRepository;
     private readonly IExcelQueue _excelQueue;
     private readonly NotaFiscalProcessingService _notaFiscalProcessingService;
-    private readonly ILogger<WeatherForecastController> _logger;
+    private readonly ILogger<DocumentosController> _logger;
 
-    public WeatherForecastController(
+    public DocumentosController(
         DocumentoRepository documentoRepository,
         IExcelQueue excelQueue,
         NotaFiscalProcessingService notaFiscalProcessingService,
-        ILogger<WeatherForecastController> logger)
+        ILogger<DocumentosController> logger)
     {
         _documentoRepository = documentoRepository;
         _excelQueue = excelQueue;

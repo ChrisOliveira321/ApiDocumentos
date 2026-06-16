@@ -24,7 +24,7 @@ Argus (`ApiDocumentos`) é uma API ASP.NET Core (.NET 8.0) para upload e process
   - `NotaFiscalProcessingService`
 - Habilita Swagger em ambiente de desenvolvimento.
 
-#### `Controllers/WeatherForecastController.cs`
+#### `Controllers/DocumentosController.cs`
 - Expõe endpoints CRUD para `Documento`.
 - Exponencial endpoint de upload em `POST /api/documentos/upload`.
 - Salva o PDF em `Uploads/` e delega o processamento ao `NotaFiscalProcessingService`.

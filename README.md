@@ -30,7 +30,7 @@ API ASP.NET Core para upload e processamento de documentos fiscais em PDF. O pro
 ## Estrutura Principal
 
 - `Program.cs` - configura controllers, Swagger e injeção de dependências.
-- `Controllers/WeatherForecastController.cs` - controller atual dos endpoints de documentos em `api/documentos`.
+- `Controllers/DocumentosController.cs` - controller dos endpoints de documentos em `api/documentos`.
 - `Data/FakeDb.cs` - armazenamento temporário em memória.
 - `Models/` - modelos `Documento`, `DadosNotaFiscal`, `Fornecedor` e `Cliente`.
 - `Repositories/` - repositórios em memória de documentos, fornecedores e clientes.
@@ -161,7 +161,7 @@ O serviço cria o arquivo caso ele não exista, valida cabeçalhos quando a tabe
 
 Logs relacionados ao Excel:
 
-- `WeatherForecastController` registra quando uma criação manual ou upload envia dados para a fila da planilha e quando a operação termina.
+- `DocumentosController` registra quando uma criação manual ou upload envia dados para a fila da planilha e quando a operação termina.
 - `ExcelQueue` registra cada nota enfileirada.
 - `ExcelBackgroundService` registra o início do worker, o processamento de cada item e falhas da fila.
 - `ExcelService` registra a solicitação de gravação, abertura ou criação do arquivo, criação/localização da tabela, linha preparada, sucesso da gravação, espera/liberação do lock em nível `Debug`, tentativas de retry em `Warning` e falha definitiva em `Error`.
@@ -235,13 +235,11 @@ curl -X POST "https://localhost:{porta}/api/documentos" \
 - A pasta `Uploads/` é criada automaticamente quando necessário.
 - A detecção depende dos CNPJs encontrados no PDF e de regras simples de texto.
 - Layouts não reconhecidos retornam `TipoLayout.Desconhecido`; nesse caso, os dados extraídos podem ficar vazios ou incompletos.
-- O controller principal ainda se chama `WeatherForecastController.cs`, embora exponha endpoints de documentos.
 - O projeto compila atualmente com `dotnet build`.
 
 ## Melhorias Possíveis
 
 - Persistência real em banco de dados.
-- Renomear `WeatherForecastController.cs` para um nome alinhado ao domínio, como `DocumentosController.cs`.
 - Validação mais robusta dos arquivos enviados.
 - Tratamento de erros mais detalhado no processamento.
 - Testes automatizados para detectores e parsers.
