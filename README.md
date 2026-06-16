@@ -157,7 +157,7 @@ Mapeamento centralizado em `ExcelService`:
 - `CnpjCliente` -> `CNPJ Rocha`
 - `ValorTotal` -> `Valor`
 
-O serviço cria o arquivo caso ele não exista, valida cabeçalhos quando a tabela já existe, usa controle de concorrência com `SemaphoreSlim` e aplica retry em falhas de escrita comuns, como arquivo aberto ou bloqueado.
+O serviço cria o arquivo caso ele não exista, valida cabeçalhos quando a tabela já existe, usa controle de concorrência com `SemaphoreSlim`, aplica retry em falhas de escrita comuns, como arquivo aberto ou bloqueado, e evita duplicidade usando a chave natural `CNPJ Fornecedor + NF + Valor`.
 
 Logs relacionados ao Excel:
 
@@ -165,6 +165,7 @@ Logs relacionados ao Excel:
 - `ExcelQueue` registra cada nota enfileirada.
 - `ExcelBackgroundService` registra o início do worker, o processamento de cada item e falhas da fila.
 - `ExcelService` registra a solicitação de gravação, abertura ou criação do arquivo, criação/localização da tabela, linha preparada, sucesso da gravação, espera/liberação do lock em nível `Debug`, tentativas de retry em `Warning` e falha definitiva em `Error`.
+- Quando uma nota já existe na planilha, `ExcelService` registra a linha encontrada e ignora uma nova inserção.
 - Os logs usam campos estruturados como `NumeroNota`, `Fornecedor`, `ValorTotal`, `CaminhoArquivo`, `NomeAba`, `NomeTabela` e `Linha`, facilitando filtro no console ou em ferramentas de observabilidade.
 
 Para uma evolução futura, o ideal é mover a escrita no Excel para um `BackgroundService`: a API gravaria o documento no banco e publicaria uma pendência de sincronização em uma fila/tabela; o job processaria itens pendentes, aplicaria controle de redundância por chave natural, como `CNPJ Fornecedor + NF + Valor`, e marcaria cada item como sincronizado ou com erro.

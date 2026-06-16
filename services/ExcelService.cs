@@ -78,6 +78,18 @@ public class ExcelService : IExcelService
                     linhaAdicionada = 2;
                     linhaCriadaDuranteEstrutura = true;
                 }
+                else if (NotaJaExiste(resultadoTabela.Tabela, dados, out var linhaDuplicada))
+                {
+                    _logger.LogInformation(
+                        "Nota ja existe no Excel. Gravacao ignorada. NF: {NumeroNota}; CNPJ Fornecedor: {CnpjFornecedor}; Valor: {ValorTotal}; Linha: {Linha}.",
+                        dados.NumeroNota,
+                        dados.CnpjFornecedor,
+                        dados.ValorTotal,
+                        linhaDuplicada);
+
+                    workbook.SaveAs(caminhoArquivo);
+                    return;
+                }
                 else if (!resultadoTabela.LinhaJaAdicionada)
                 {
                     linhaAdicionada = AdicionarLinha(resultadoTabela.Tabela, dados);
@@ -307,6 +319,49 @@ public class ExcelService : IExcelService
         {
             row.Cell(colunasPorCabecalho[mapping.Header]).Value = mapping.GetValue(dados);
         }
+    }
+
+    private static bool NotaJaExiste(IXLTable tabela, DadosNotaFiscal dados, out int linhaDuplicada)
+    {
+        linhaDuplicada = 0;
+
+        var colunasPorCabecalho = ObterColunasPorCabecalho(tabela);
+        var colunaNota = colunasPorCabecalho["NF"];
+        var colunaCnpjFornecedor = colunasPorCabecalho["CNPJ Fornecedor"];
+        var colunaValor = colunasPorCabecalho["Valor"];
+
+        var nota = NormalizarChave(dados.NumeroNota);
+        var cnpjFornecedor = NormalizarChave(dados.CnpjFornecedor);
+        var valor = NormalizarChave(dados.ValorTotal);
+
+        var worksheet = tabela.Worksheet;
+        var primeiraLinha = tabela.DataRange.RangeAddress.FirstAddress.RowNumber;
+        var ultimaLinha = tabela.DataRange.RangeAddress.LastAddress.RowNumber;
+
+        for (var linha = primeiraLinha; linha <= ultimaLinha; linha++)
+        {
+            var notaLinha = NormalizarChave(worksheet.Cell(linha, colunaNota).GetString());
+            var cnpjLinha = NormalizarChave(worksheet.Cell(linha, colunaCnpjFornecedor).GetString());
+            var valorLinha = NormalizarChave(worksheet.Cell(linha, colunaValor).GetString());
+
+            if (notaLinha == nota && cnpjLinha == cnpjFornecedor && valorLinha == valor)
+            {
+                linhaDuplicada = linha;
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    private static string NormalizarChave(string? valor)
+    {
+        if (string.IsNullOrWhiteSpace(valor))
+        {
+            return string.Empty;
+        }
+
+        return string.Concat(valor.Where(char.IsLetterOrDigit)).ToUpperInvariant();
     }
 
     private static Dictionary<string, int> ObterColunasPorCabecalho(IXLTable tabela)
