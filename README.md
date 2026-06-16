@@ -147,6 +147,8 @@ Configuração atual em `appsettings.json`:
 }
 ```
 
+As opções `Excel:CaminhoArquivo`, `Excel:NomeTabela` e `Excel:NomeAba` são validadas na inicialização da aplicação. Se alguma delas estiver vazia, a API falha no startup com uma mensagem de configuração.
+
 Mapeamento centralizado em `ExcelService`:
 
 - `Layout` -> `Layout`

@@ -8,7 +8,13 @@ var builder = WebApplication.CreateBuilder(args);
 
 builder.Services.AddControllers();
 
-builder.Services.Configure<ExcelOptions>(builder.Configuration.GetSection("Excel"));
+builder.Services
+    .AddOptions<ExcelOptions>()
+    .Bind(builder.Configuration.GetSection("Excel"))
+    .Validate(options => !string.IsNullOrWhiteSpace(options.CaminhoArquivo), "Excel:CaminhoArquivo deve ser informado.")
+    .Validate(options => !string.IsNullOrWhiteSpace(options.NomeTabela), "Excel:NomeTabela deve ser informado.")
+    .Validate(options => !string.IsNullOrWhiteSpace(options.NomeAba), "Excel:NomeAba deve ser informado.")
+    .ValidateOnStart();
 
 builder.Services.AddSingleton<PdfService>();
 builder.Services.AddSingleton<LayoutDetectorService>();

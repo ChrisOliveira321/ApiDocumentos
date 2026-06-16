@@ -14,6 +14,7 @@ Argus (`ApiDocumentos`) é uma API ASP.NET Core (.NET 8.0) para upload e process
 
 #### `Program.cs`
 - Configura os serviços e a injeção de dependências.
+- Valida as opções de Excel na inicialização da aplicação.
 - Registra serviços singleton:
   - `PdfService`
   - `LayoutDetectorService`
