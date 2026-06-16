@@ -50,7 +50,7 @@ API ASP.NET Core para upload e processamento de documentos fiscais em PDF. O pro
 - `PloomesLayoutDetector` - detector específico para documentos Ploomes.
 - `ParserRegistryService` - seleciona o parser conforme o `TipoLayout`.
 - `NotaFiscalProcessingService` - coordena leitura, detecção, parsing, enriquecimento e criação do `Documento`.
-- `ExcelService` - adiciona os dados extraídos na planilha Excel sem sobrescrever registros existentes.
+- `ExcelService` - adiciona os dados extraídos na planilha Excel sem sobrescrever registros existentes e registra logs de diagnóstico da gravação.
 - `NotaFiscalParserBase` - classe base com lógica comum para parsers.
 - Parsers atuais:
   - `DanfeProdutoModernoParser`
@@ -154,6 +154,12 @@ Mapeamento centralizado em `ExcelService`:
 - `ValorTotal` -> `Valor`
 
 O serviço cria o arquivo caso ele não exista, valida cabeçalhos quando a tabela já existe, usa controle de concorrência com `SemaphoreSlim` e aplica retry em falhas de escrita comuns, como arquivo aberto ou bloqueado.
+
+Logs relacionados ao Excel:
+
+- `WeatherForecastController` registra quando uma criação manual ou upload envia dados para a planilha e quando a operação termina.
+- `ExcelService` registra a solicitação de gravação, abertura ou criação do arquivo, criação/localização da tabela, linha preparada, sucesso da gravação, espera/liberação do lock em nível `Debug`, tentativas de retry em `Warning` e falha definitiva em `Error`.
+- Os logs usam campos estruturados como `NumeroNota`, `Fornecedor`, `ValorTotal`, `CaminhoArquivo`, `NomeAba`, `NomeTabela` e `Linha`, facilitando filtro no console ou em ferramentas de observabilidade.
 
 Para uma evolução futura, o ideal é mover a escrita no Excel para um `BackgroundService`: a API gravaria o documento no banco e publicaria uma pendência de sincronização em uma fila/tabela; o job processaria itens pendentes, aplicaria controle de redundância por chave natural, como `CNPJ Fornecedor + NF + Valor`, e marcaria cada item como sincronizado ou com erro.
 

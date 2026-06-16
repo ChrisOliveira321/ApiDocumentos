@@ -38,32 +38,71 @@ public class ExcelService : IExcelService
             throw new ArgumentNullException(nameof(dados));
         }
 
+        _logger.LogInformation(
+            "Solicitada gravacao no Excel. NF: {NumeroNota}; Fornecedor: {Fornecedor}; Valor: {ValorTotal}.",
+            dados.NumeroNota,
+            dados.NomeFornecedor,
+            dados.ValorTotal);
+
+        _logger.LogDebug("Aguardando lock de escrita do Excel.");
         await EscritaLock.WaitAsync();
 
         try
         {
+            _logger.LogDebug("Lock de escrita do Excel obtido.");
+
             await ExecutarComRetryAsync(() =>
             {
                 var caminhoArquivo = ObterCaminhoArquivo();
                 Directory.CreateDirectory(Path.GetDirectoryName(caminhoArquivo)!);
 
-                using var workbook = File.Exists(caminhoArquivo)
+                var arquivoExistente = File.Exists(caminhoArquivo);
+
+                _logger.LogInformation(
+                    "{Acao} arquivo Excel. Caminho: {CaminhoArquivo}; Aba: {NomeAba}; Tabela: {NomeTabela}.",
+                    arquivoExistente ? "Abrindo" : "Criando",
+                    caminhoArquivo,
+                    _options.NomeAba,
+                    _options.NomeTabela);
+
+                using var workbook = arquivoExistente
                     ? new XLWorkbook(caminhoArquivo)
                     : CriarWorkbookComEstruturaInicial(dados);
 
                 var resultadoTabela = ObterOuCriarTabela(workbook, dados);
+                var linhaAdicionada = resultadoTabela.LinhaAdicionadaNumero;
+                var linhaCriadaDuranteEstrutura = resultadoTabela.LinhaJaAdicionada;
 
-                if (!resultadoTabela.LinhaJaAdicionada)
+                if (!arquivoExistente)
                 {
-                    AdicionarLinha(resultadoTabela.Tabela, dados);
+                    linhaAdicionada = 2;
+                    linhaCriadaDuranteEstrutura = true;
+                }
+                else if (!resultadoTabela.LinhaJaAdicionada)
+                {
+                    linhaAdicionada = AdicionarLinha(resultadoTabela.Tabela, dados);
                 }
 
+                _logger.LogInformation(
+                    "Linha preparada para gravacao no Excel. Tabela: {NomeTabela}; Aba: {NomeAba}; Linha: {Linha}; LinhaCriadaDuranteEstrutura: {LinhaJaAdicionada}.",
+                    resultadoTabela.Tabela.Name,
+                    resultadoTabela.Tabela.Worksheet.Name,
+                    linhaAdicionada,
+                    linhaCriadaDuranteEstrutura);
+
                 workbook.SaveAs(caminhoArquivo);
+
+                _logger.LogInformation(
+                    "Gravacao no Excel concluida. Caminho: {CaminhoArquivo}; NF: {NumeroNota}; Linha: {Linha}.",
+                    caminhoArquivo,
+                    dados.NumeroNota,
+                    linhaAdicionada);
             });
         }
         finally
         {
             EscritaLock.Release();
+            _logger.LogDebug("Lock de escrita do Excel liberado.");
         }
     }
 
@@ -76,13 +115,25 @@ public class ExcelService : IExcelService
                 operacao();
                 return;
             }
-            catch (IOException ex) when (tentativa < MaxTentativasEscrita)
+            catch (IOException ex)
             {
+                if (tentativa >= MaxTentativasEscrita)
+                {
+                    _logger.LogError(ex, "Falha definitiva ao escrever no Excel apos {MaxTentativas} tentativas.", MaxTentativasEscrita);
+                    throw new InvalidOperationException("Nao foi possivel gravar os dados na planilha Excel. Verifique se o arquivo esta aberto ou bloqueado.", ex);
+                }
+
                 _logger.LogWarning(ex, "Falha ao escrever no Excel. Tentativa {Tentativa} de {MaxTentativas}.", tentativa, MaxTentativasEscrita);
                 await Task.Delay(IntervaloTentativas);
             }
-            catch (UnauthorizedAccessException ex) when (tentativa < MaxTentativasEscrita)
+            catch (UnauthorizedAccessException ex)
             {
+                if (tentativa >= MaxTentativasEscrita)
+                {
+                    _logger.LogError(ex, "Acesso negado ao escrever no Excel apos {MaxTentativas} tentativas.", MaxTentativasEscrita);
+                    throw new InvalidOperationException("Nao foi possivel gravar os dados na planilha Excel. Verifique se o arquivo esta aberto ou bloqueado.", ex);
+                }
+
                 _logger.LogWarning(ex, "Acesso negado ao escrever no Excel. Tentativa {Tentativa} de {MaxTentativas}.", tentativa, MaxTentativasEscrita);
                 await Task.Delay(IntervaloTentativas);
             }
@@ -95,6 +146,7 @@ public class ExcelService : IExcelService
     {
         if (string.IsNullOrWhiteSpace(_options.CaminhoArquivo))
         {
+            _logger.LogError("Configuracao Excel:CaminhoArquivo nao foi informada.");
             throw new InvalidOperationException("O caminho da planilha Excel não foi configurado.");
         }
 
@@ -103,6 +155,11 @@ public class ExcelService : IExcelService
 
     private XLWorkbook CriarWorkbookComEstruturaInicial(DadosNotaFiscal dados)
     {
+        _logger.LogInformation(
+            "Criando workbook Excel inicial. Aba: {NomeAba}; Tabela: {NomeTabela}.",
+            _options.NomeAba,
+            _options.NomeTabela);
+
         var workbook = new XLWorkbook();
         var worksheet = workbook.Worksheets.Add(_options.NomeAba);
 
@@ -113,7 +170,7 @@ public class ExcelService : IExcelService
         return workbook;
     }
 
-    private (IXLTable Tabela, bool LinhaJaAdicionada) ObterOuCriarTabela(XLWorkbook workbook, DadosNotaFiscal dados)
+    private (IXLTable Tabela, bool LinhaJaAdicionada, int? LinhaAdicionadaNumero) ObterOuCriarTabela(XLWorkbook workbook, DadosNotaFiscal dados)
     {
         var tabela = workbook.Worksheets
             .SelectMany(worksheet => worksheet.Tables)
@@ -121,9 +178,16 @@ public class ExcelService : IExcelService
 
         if (tabela != null)
         {
+            _logger.LogDebug(
+                "Tabela Excel encontrada. Tabela: {NomeTabela}; Aba: {NomeAba}.",
+                tabela.Name,
+                tabela.Worksheet.Name);
+
             ValidarCabecalhos(tabela);
-            return (tabela, false);
+            return (tabela, false, null);
         }
+
+        _logger.LogInformation("Tabela Excel {NomeTabela} nao encontrada. Uma nova tabela sera criada se necessario.", _options.NomeTabela);
 
         var worksheet = workbook.Worksheets
             .FirstOrDefault(sheet => string.Equals(sheet.Name, _options.NomeAba, StringComparison.OrdinalIgnoreCase))
@@ -138,7 +202,13 @@ public class ExcelService : IExcelService
             PreencherLinha(worksheet.Row(2), dados);
             var novaTabela = worksheet.Range(1, 1, 2, ColumnMappings.Count).CreateTable(_options.NomeTabela);
 
-            return (novaTabela, true);
+            _logger.LogInformation(
+                "Tabela Excel criada em planilha vazia. Tabela: {NomeTabela}; Aba: {NomeAba}; Linha inicial: {Linha}.",
+                novaTabela.Name,
+                worksheet.Name,
+                2);
+
+            return (novaTabela, true, 2);
         }
 
         ValidarOuPreencherCabecalhos(worksheet);
@@ -148,13 +218,25 @@ public class ExcelService : IExcelService
             PreencherLinha(worksheet.Row(2), dados);
             var novaTabela = worksheet.Range(1, 1, 2, ColumnMappings.Count).CreateTable(_options.NomeTabela);
 
-            return (novaTabela, true);
+            _logger.LogInformation(
+                "Tabela Excel criada usando cabecalho existente. Tabela: {NomeTabela}; Aba: {NomeAba}; Linha inicial: {Linha}.",
+                novaTabela.Name,
+                worksheet.Name,
+                2);
+
+            return (novaTabela, true, 2);
         }
 
         var tabelaCriada = worksheet.Range(1, 1, ultimaLinhaUsada, ColumnMappings.Count).CreateTable(_options.NomeTabela);
         ValidarCabecalhos(tabelaCriada);
 
-        return (tabelaCriada, false);
+        _logger.LogInformation(
+            "Tabela Excel criada a partir de intervalo existente. Tabela: {NomeTabela}; Aba: {NomeAba}; UltimaLinha: {UltimaLinha}.",
+            tabelaCriada.Name,
+            worksheet.Name,
+            ultimaLinhaUsada);
+
+        return (tabelaCriada, false, null);
     }
 
     private static void PreencherCabecalhos(IXLWorksheet worksheet)
@@ -191,7 +273,7 @@ public class ExcelService : IExcelService
         }
     }
 
-    private static void AdicionarLinha(IXLTable tabela, DadosNotaFiscal dados)
+    private static int AdicionarLinha(IXLTable tabela, DadosNotaFiscal dados)
     {
         var worksheet = tabela.Worksheet;
         var novaLinhaNumero = tabela.RangeAddress.LastAddress.RowNumber + 1;
@@ -205,6 +287,8 @@ public class ExcelService : IExcelService
         var ultimaColuna = primeiraColuna + ColumnMappings.Count - 1;
 
         tabela.Resize(worksheet.Range(primeiraLinha, primeiraColuna, ultimaLinha, ultimaColuna));
+
+        return novaLinhaNumero;
     }
 
     private static void PreencherLinha(IXLRow row, DadosNotaFiscal dados)
