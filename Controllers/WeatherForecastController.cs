@@ -1,3 +1,4 @@
+using CrudApi.Interfaces;
 using CrudApi.Models;
 using CrudApi.Repositories;
 using CrudApi.Services;
@@ -10,13 +11,16 @@ namespace CrudApi.Controllers;
 public class WeatherForecastController : ControllerBase
 {
     private readonly DocumentoRepository _documentoRepository;
+    private readonly IExcelService _excelService;
     private readonly NotaFiscalProcessingService _notaFiscalProcessingService;
 
     public WeatherForecastController(
         DocumentoRepository documentoRepository,
+        IExcelService excelService,
         NotaFiscalProcessingService notaFiscalProcessingService)
     {
         _documentoRepository = documentoRepository;
+        _excelService = excelService;
         _notaFiscalProcessingService = notaFiscalProcessingService;
     }
 
@@ -40,8 +44,10 @@ public class WeatherForecastController : ControllerBase
     }
 
     [HttpPost]
-    public IActionResult Create(Documento documento)
+    public async Task<IActionResult> Create(Documento documento)
     {
+        await _excelService.AdicionarNotaAsync(documento.ConteudoExtraido);
+
         var criado = _documentoRepository.Adicionar(documento);
         return Ok(criado);
     }
@@ -95,6 +101,8 @@ public class WeatherForecastController : ControllerBase
         }
 
         var documentoProcessado = _notaFiscalProcessingService.ProcessarDocumento(caminho, file.FileName);
+        await _excelService.AdicionarNotaAsync(documentoProcessado.ConteudoExtraido);
+
         var documentoSalvo = _documentoRepository.Adicionar(documentoProcessado);
 
         return Ok(documentoSalvo);

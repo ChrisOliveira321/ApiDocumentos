@@ -25,6 +25,7 @@ API ASP.NET Core para upload e processamento de documentos fiscais em PDF. O pro
 - Detectar layout por fornecedor e por detectores globais.
 - Selecionar parser conforme o layout detectado.
 - Montar `conteudoExtraido` como objeto JSON com layout, número da nota, fornecedor, CNPJ, valor total, data de emissão e CNPJ do cliente quando encontrado.
+- Enviar os dados extraídos para a planilha Excel `Planilha de Teste.xlsx`, tabela `TesteArgus`.
 
 ## Estrutura Principal
 
@@ -49,6 +50,7 @@ API ASP.NET Core para upload e processamento de documentos fiscais em PDF. O pro
 - `PloomesLayoutDetector` - detector específico para documentos Ploomes.
 - `ParserRegistryService` - seleciona o parser conforme o `TipoLayout`.
 - `NotaFiscalProcessingService` - coordena leitura, detecção, parsing, enriquecimento e criação do `Documento`.
+- `ExcelService` - adiciona os dados extraídos na planilha Excel sem sobrescrever registros existentes.
 - `NotaFiscalParserBase` - classe base com lógica comum para parsers.
 - Parsers atuais:
   - `DanfeProdutoModernoParser`
@@ -71,6 +73,7 @@ O `ParserRegistryService` mapeia os layouts para parsers específicos. Atualment
 
 ## Dependências
 
+- `ClosedXML` 0.104.2 - leitura e escrita em planilhas Excel.
 - `itext7` 9.6.0 - leitura e extração de texto de PDF.
 - `Newtonsoft.Json` 13.0.4 - serialização JSON.
 - `Swashbuckle.AspNetCore` 6.6.2 - Swagger/OpenAPI.
@@ -107,7 +110,8 @@ Base: `https://localhost:{porta}/api/documentos`
 7. O `ParserRegistryService` seleciona o parser correspondente.
 8. Os dados principais da nota são extraídos.
 9. O serviço tenta enriquecer os dados com fornecedor e cliente cadastrados.
-10. Um novo `Documento` é salvo em `FakeDb.Documentos` por meio de `DocumentoRepository`.
+10. O `ExcelService` adiciona os dados na próxima linha disponível da tabela `TesteArgus`.
+11. Um novo `Documento` é salvo em `FakeDb.Documentos` por meio de `DocumentoRepository`.
 
 Exemplo de `conteudoExtraido` retornado pela API:
 
@@ -122,6 +126,36 @@ Exemplo de `conteudoExtraido` retornado pela API:
   "valorTotal": "1500,00"
 }
 ```
+
+## Integração com Excel
+
+A escrita em Excel fica isolada atrás da interface `IExcelService`, permitindo trocar o `FakeDb` por banco de dados sem alterar a lógica da planilha.
+
+Configuração atual em `appsettings.json`:
+
+```json
+{
+  "Excel": {
+    "CaminhoArquivo": "C:\\Users\\christian.leite\\OneDrive - Rocha Terminais Portuários e Logística S.A\\Documentos\\Argus\\Planilha de Teste.xlsx",
+    "NomeTabela": "TesteArgus",
+    "NomeAba": "TesteArgus"
+  }
+}
+```
+
+Mapeamento centralizado em `ExcelService`:
+
+- `Layout` -> `Layout`
+- `NumeroNota` -> `NF`
+- `DataEmissao` -> `Data de Emissão`
+- `NomeFornecedor` -> `Fornecedor`
+- `CnpjFornecedor` -> `CNPJ Fornecedor`
+- `CnpjCliente` -> `CNPJ Rocha`
+- `ValorTotal` -> `Valor`
+
+O serviço cria o arquivo caso ele não exista, valida cabeçalhos quando a tabela já existe, usa controle de concorrência com `SemaphoreSlim` e aplica retry em falhas de escrita comuns, como arquivo aberto ou bloqueado.
+
+Para uma evolução futura, o ideal é mover a escrita no Excel para um `BackgroundService`: a API gravaria o documento no banco e publicaria uma pendência de sincronização em uma fila/tabela; o job processaria itens pendentes, aplicaria controle de redundância por chave natural, como `CNPJ Fornecedor + NF + Valor`, e marcaria cada item como sincronizado ou com erro.
 
 ## Como Executar
 

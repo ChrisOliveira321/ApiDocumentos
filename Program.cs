@@ -1,3 +1,4 @@
+using CrudApi.Interfaces;
 using CrudApi.Repositories;
 using CrudApi.Services;
 
@@ -7,12 +8,15 @@ var builder = WebApplication.CreateBuilder(args);
 
 builder.Services.AddControllers();
 
+builder.Services.Configure<ExcelOptions>(builder.Configuration.GetSection("Excel"));
+
 builder.Services.AddSingleton<PdfService>();
 builder.Services.AddSingleton<LayoutDetectorService>();
 builder.Services.AddSingleton<CnpjReaderService>();
 builder.Services.AddSingleton<FornecedorRepository>();
 builder.Services.AddSingleton<ClienteRepository>();
 builder.Services.AddSingleton<DocumentoRepository>();
+builder.Services.AddSingleton<IExcelService, ExcelService>();
 builder.Services.AddSingleton<ParserRegistryService>();
 builder.Services.AddSingleton<NotaFiscalProcessingService>();
 
