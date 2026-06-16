@@ -11,18 +11,18 @@ namespace CrudApi.Controllers;
 public class WeatherForecastController : ControllerBase
 {
     private readonly DocumentoRepository _documentoRepository;
-    private readonly IExcelService _excelService;
+    private readonly IExcelQueue _excelQueue;
     private readonly NotaFiscalProcessingService _notaFiscalProcessingService;
     private readonly ILogger<WeatherForecastController> _logger;
 
     public WeatherForecastController(
         DocumentoRepository documentoRepository,
-        IExcelService excelService,
+        IExcelQueue excelQueue,
         NotaFiscalProcessingService notaFiscalProcessingService,
         ILogger<WeatherForecastController> logger)
     {
         _documentoRepository = documentoRepository;
-        _excelService = excelService;
+        _excelQueue = excelQueue;
         _notaFiscalProcessingService = notaFiscalProcessingService;
         _logger = logger;
     }
@@ -47,7 +47,7 @@ public class WeatherForecastController : ControllerBase
     }
 
     [HttpPost]
-    public async Task<IActionResult> Create(Documento documento)
+    public IActionResult Create(Documento documento)
     {
         if (documento.ConteudoExtraido == null)
         {
@@ -56,15 +56,15 @@ public class WeatherForecastController : ControllerBase
         }
 
         _logger.LogInformation(
-            "Recebida solicitacao de criacao manual de documento com gravacao no Excel. Arquivo: {NomeArquivo}; NF: {NumeroNota}.",
+            "Recebida solicitacao de criacao manual de documento com envio para fila do Excel. Arquivo: {NomeArquivo}; NF: {NumeroNota}.",
             documento.nomeArquivo,
             documento.ConteudoExtraido.NumeroNota);
 
-        await _excelService.AdicionarNotaAsync(documento.ConteudoExtraido);
+        _excelQueue.Enfileirar(documento.ConteudoExtraido);
 
         var criado = _documentoRepository.Adicionar(documento);
         _logger.LogInformation(
-            "Documento manual criado e enviado ao Excel. DocumentoId: {DocumentoId}; Arquivo: {NomeArquivo}.",
+            "Documento manual criado e enviado para fila do Excel. DocumentoId: {DocumentoId}; Arquivo: {NomeArquivo}.",
             criado.Id,
             criado.nomeArquivo);
 
@@ -122,17 +122,17 @@ public class WeatherForecastController : ControllerBase
         var documentoProcessado = _notaFiscalProcessingService.ProcessarDocumento(caminho, file.FileName);
 
         _logger.LogInformation(
-            "Documento processado sera enviado ao Excel. Arquivo: {NomeArquivo}; NF: {NumeroNota}; Layout: {Layout}.",
+            "Documento processado sera enviado para fila do Excel. Arquivo: {NomeArquivo}; NF: {NumeroNota}; Layout: {Layout}.",
             file.FileName,
             documentoProcessado.ConteudoExtraido.NumeroNota,
             documentoProcessado.ConteudoExtraido.Layout);
 
-        await _excelService.AdicionarNotaAsync(documentoProcessado.ConteudoExtraido);
+        _excelQueue.Enfileirar(documentoProcessado.ConteudoExtraido);
 
         var documentoSalvo = _documentoRepository.Adicionar(documentoProcessado);
 
         _logger.LogInformation(
-            "Upload processado, gravado no Excel e salvo em memoria. DocumentoId: {DocumentoId}; Arquivo: {NomeArquivo}.",
+            "Upload processado, enviado para fila do Excel e salvo em memoria. DocumentoId: {DocumentoId}; Arquivo: {NomeArquivo}.",
             documentoSalvo.Id,
             documentoSalvo.nomeArquivo);
 

@@ -50,6 +50,8 @@ API ASP.NET Core para upload e processamento de documentos fiscais em PDF. O pro
 - `PloomesLayoutDetector` - detector específico para documentos Ploomes.
 - `ParserRegistryService` - seleciona o parser conforme o `TipoLayout`.
 - `NotaFiscalProcessingService` - coordena leitura, detecção, parsing, enriquecimento e criação do `Documento`.
+- `ExcelQueue` - fila em memória para desacoplar a requisição HTTP da escrita no Excel.
+- `ExcelBackgroundService` - processa a fila do Excel em segundo plano.
 - `ExcelService` - adiciona os dados extraídos na planilha Excel sem sobrescrever registros existentes e registra logs de diagnóstico da gravação.
 - `NotaFiscalParserBase` - classe base com lógica comum para parsers.
 - Parsers atuais:
@@ -110,8 +112,10 @@ Base: `https://localhost:{porta}/api/documentos`
 7. O `ParserRegistryService` seleciona o parser correspondente.
 8. Os dados principais da nota são extraídos.
 9. O serviço tenta enriquecer os dados com fornecedor e cliente cadastrados.
-10. O `ExcelService` adiciona os dados na próxima linha disponível da tabela `TesteArgus`.
-11. Um novo `Documento` é salvo em `FakeDb.Documentos` por meio de `DocumentoRepository`.
+10. Os dados extraídos são enviados para a fila do Excel.
+11. O `ExcelBackgroundService` processa a fila em segundo plano.
+12. O `ExcelService` adiciona os dados na próxima linha disponível da tabela `TesteArgus`.
+13. Um novo `Documento` é salvo em `FakeDb.Documentos` por meio de `DocumentoRepository`.
 
 Exemplo de `conteudoExtraido` retornado pela API:
 
@@ -129,7 +133,7 @@ Exemplo de `conteudoExtraido` retornado pela API:
 
 ## Integração com Excel
 
-A escrita em Excel fica isolada atrás da interface `IExcelService`, permitindo trocar o `FakeDb` por banco de dados sem alterar a lógica da planilha.
+A escrita em Excel fica isolada atrás da interface `IExcelService`, permitindo trocar o `FakeDb` por banco de dados sem alterar a lógica da planilha. As requisições HTTP não gravam diretamente no arquivo: elas enfileiram os dados em `IExcelQueue`, e o `ExcelBackgroundService` realiza a gravação em segundo plano.
 
 Configuração atual em `appsettings.json`:
 
@@ -157,7 +161,9 @@ O serviço cria o arquivo caso ele não exista, valida cabeçalhos quando a tabe
 
 Logs relacionados ao Excel:
 
-- `WeatherForecastController` registra quando uma criação manual ou upload envia dados para a planilha e quando a operação termina.
+- `WeatherForecastController` registra quando uma criação manual ou upload envia dados para a fila da planilha e quando a operação termina.
+- `ExcelQueue` registra cada nota enfileirada.
+- `ExcelBackgroundService` registra o início do worker, o processamento de cada item e falhas da fila.
 - `ExcelService` registra a solicitação de gravação, abertura ou criação do arquivo, criação/localização da tabela, linha preparada, sucesso da gravação, espera/liberação do lock em nível `Debug`, tentativas de retry em `Warning` e falha definitiva em `Error`.
 - Os logs usam campos estruturados como `NumeroNota`, `Fornecedor`, `ValorTotal`, `CaminhoArquivo`, `NomeAba`, `NomeTabela` e `Linha`, facilitando filtro no console ou em ferramentas de observabilidade.
 

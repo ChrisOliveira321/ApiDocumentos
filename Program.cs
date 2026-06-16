@@ -17,8 +17,10 @@ builder.Services.AddSingleton<FornecedorRepository>();
 builder.Services.AddSingleton<ClienteRepository>();
 builder.Services.AddSingleton<DocumentoRepository>();
 builder.Services.AddSingleton<IExcelService, ExcelService>();
+builder.Services.AddSingleton<IExcelQueue, ExcelQueue>();
 builder.Services.AddSingleton<ParserRegistryService>();
 builder.Services.AddSingleton<NotaFiscalProcessingService>();
+builder.Services.AddHostedService<ExcelBackgroundService>();
 
 // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
 builder.Services.AddEndpointsApiExplorer();
