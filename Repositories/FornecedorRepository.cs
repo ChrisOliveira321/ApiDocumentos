@@ -110,7 +110,7 @@ public class FornecedorRepository
         }
     };
 
-    public Fornecedor BuscarPorCnpj(string cnpj)
+    public Fornecedor? BuscarPorCnpj(string cnpj)
     {
         if (string.IsNullOrWhiteSpace(cnpj)) return null;
 

@@ -84,7 +84,7 @@ public class DanfePadraoModernoParser : NotaFiscalParserBase
             return match.Groups[1].Value.Trim();
         }
 
-        return null;
+        return string.Empty;
     }
 
 }

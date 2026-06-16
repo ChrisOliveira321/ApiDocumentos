@@ -1,7 +1,7 @@
-using CrudApi.Data;
+using CrudApi.Models;
+using CrudApi.Repositories;
 using CrudApi.Services;
 using Microsoft.AspNetCore.Mvc;
-
 
 namespace CrudApi.Controllers;
 
@@ -9,104 +9,94 @@ namespace CrudApi.Controllers;
 [Route("api/documentos")]
 public class WeatherForecastController : ControllerBase
 {
+    private readonly DocumentoRepository _documentoRepository;
     private readonly NotaFiscalProcessingService _notaFiscalProcessingService;
 
-    public WeatherForecastController(NotaFiscalProcessingService notaFiscalProcessingService)
+    public WeatherForecastController(
+        DocumentoRepository documentoRepository,
+        NotaFiscalProcessingService notaFiscalProcessingService)
     {
+        _documentoRepository = documentoRepository;
         _notaFiscalProcessingService = notaFiscalProcessingService;
     }
 
-    // GET - Listar todos   
     [HttpGet]
-    public IActionResult getAll()
+    public IActionResult GetAll()
     {
-        return Ok(FakeDb.Documentos);
+        return Ok(_documentoRepository.ListarTodos());
     }
 
-    // GET - Buscar por ID
     [HttpGet("{id}")]
     public IActionResult GetById(int id)
     {
-        var doc = FakeDb.Documentos.FirstOrDefault(x => x.Id == id);
+        var documento = _documentoRepository.BuscarPorId(id);
 
-        if (doc == null)
+        if (documento == null)
+        {
             return NotFound();
+        }
 
-        return Ok(doc);
+        return Ok(documento);
     }
 
-    // POST - Criar 
     [HttpPost]
-    public IActionResult Create(Documento doc)
+    public IActionResult Create(Documento documento)
     {
-        doc.Id = FakeDb.Documentos.Count + 1;
-        doc.DataUpload = DateTime.Now;
-
-        FakeDb.Documentos.Add(doc);
-        
-        return Ok(doc);
+        var criado = _documentoRepository.Adicionar(documento);
+        return Ok(criado);
     }
 
-    // PUT - Atualizar
     [HttpPut("{id}")]
-    public IActionResult Update(int id, Documento updated)
+    public IActionResult Update(int id, Documento atualizado)
     {
-        var doc = FakeDb.Documentos.FirstOrDefault(x => x.Id == id);
+        var documento = _documentoRepository.Atualizar(id, atualizado);
 
-        if (doc == null) 
+        if (documento == null)
+        {
             return NotFound();
+        }
 
-        doc.nomeArquivo = updated.nomeArquivo;
-        doc.Tipo = updated.Tipo;
-        doc.ConteudoExtraido = updated.ConteudoExtraido;
-
-        return Ok(doc);
+        return Ok(documento);
     }
 
-    // DELETE 
     [HttpDelete("{id}")]
     public IActionResult Delete(int id)
     {
-        var doc = FakeDb.Documentos.FirstOrDefault(x => x.Id == id);
+        var removido = _documentoRepository.Remover(id);
 
-        if (doc == null) 
+        if (!removido)
+        {
             return NotFound();
-
-        FakeDb.Documentos.Remove(doc);
+        }
 
         return NoContent();
     }
 
-    //
     [HttpPost("upload")]
     public async Task<IActionResult> Upload(IFormFile file)
     {
-        // 1. Validação 
         if (file == null || file.Length == 0)
+        {
             return BadRequest("Arquivo inválido");
+        }
 
-        // 2. Pasta onde vai salvar 
         var pasta = Path.Combine(Directory.GetCurrentDirectory(), "Uploads");
 
-        if (!Directory.Exists(pasta)) 
+        if (!Directory.Exists(pasta))
+        {
             Directory.CreateDirectory(pasta);
+        }
 
-        // 3. Caminho final 
         var caminho = Path.Combine(pasta, file.FileName);
 
-        // 4.Salvar arquivo 
         using (var stream = new FileStream(caminho, FileMode.Create))
         {
             await file.CopyToAsync(stream);
-        }          
+        }
 
-        var doc = _notaFiscalProcessingService.ProcessarDocumento(caminho, file.FileName);
+        var documentoProcessado = _notaFiscalProcessingService.ProcessarDocumento(caminho, file.FileName);
+        var documentoSalvo = _documentoRepository.Adicionar(documentoProcessado);
 
-        // 7. Salvar 
-        FakeDb.Documentos.Add(doc);
-
-        // 8. Retornar resposta 
-        return Ok(doc);
+        return Ok(documentoSalvo);
     }
-
 }

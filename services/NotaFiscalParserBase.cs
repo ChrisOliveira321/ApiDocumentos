@@ -29,10 +29,10 @@ public abstract class NotaFiscalParserBase : INotaFiscalParser
 
     protected string ExtrairCnpj(string texto)
     {
-        return _cnpjReader.ExtrairCnpjs(texto).FirstOrDefault();
+        return _cnpjReader.ExtrairCnpjs(texto).FirstOrDefault() ?? string.Empty;
     }
 
-    protected string ObterNomeFornecedorPeloCnpj(string cnpj)
+    protected string? ObterNomeFornecedorPeloCnpj(string cnpj)
     {
         if (string.IsNullOrWhiteSpace(cnpj))
         {

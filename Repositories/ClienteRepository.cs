@@ -46,11 +46,13 @@ public class ClienteRepository
         },
     };
 
-    public Cliente BuscarPorCnpj(string cnpj)
-{
-    if (string.IsNullOrWhiteSpace(cnpj))
-        return null;
+    public Cliente? BuscarPorCnpj(string cnpj)
+    {
+        if (string.IsNullOrWhiteSpace(cnpj))
+        {
+            return null;
+        }
 
-    return _clientes.FirstOrDefault(c => c.Cnpj == cnpj);
-}
+        return _clientes.FirstOrDefault(c => c.Cnpj == cnpj);
+    }
 }

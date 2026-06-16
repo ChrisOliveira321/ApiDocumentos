@@ -1,3 +1,5 @@
+using CrudApi.Models;
+
 namespace CrudApi.Data;
 
 public static class FakeDb

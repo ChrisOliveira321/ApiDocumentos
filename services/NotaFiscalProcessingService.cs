@@ -1,5 +1,4 @@
-using System.Text;
-using CrudApi.Data;
+using System.Text.Json;
 using CrudApi.Enums;
 using CrudApi.Models;
 using CrudApi.Repositories;
@@ -8,6 +7,12 @@ namespace CrudApi.Services;
 
 public class NotaFiscalProcessingService
 {
+    private static readonly JsonSerializerOptions JsonOptions = new()
+    {
+        PropertyNamingPolicy = JsonNamingPolicy.CamelCase,
+        WriteIndented = true
+    };
+
     private readonly PdfService _pdfService;
     private readonly LayoutDetectorService _layoutDetector;
     private readonly CnpjReaderService _cnpjReader;
@@ -36,22 +41,25 @@ public class NotaFiscalProcessingService
         var texto = _pdfService.LerPdf(caminho);
         var layout = _layoutDetector.Detectar(texto);
         Console.WriteLine($"Layout detectado: {layout}");
+
         var parser = _parserRegistry.ObterParser(layout);
         Console.WriteLine($"Parser selecionado: {(parser != null ? parser.GetType().Name : "null")}");
+
         var dados = parser?.ExtrairDados(texto) ?? new DadosNotaFiscal();
-
-        Console.WriteLine(texto);
-
         var cnpjs = _cnpjReader.ExtrairCnpjs(texto);
+
         PreencherDadosFornecedor(dados, cnpjs);
         PreencherDadosCliente(dados, cnpjs);
+
+        var conteudoExtraido = MontarConteudoExtraido(layout, dados);
+        Console.WriteLine("JSON extraído da nota fiscal:");
+        Console.WriteLine(JsonSerializer.Serialize(conteudoExtraido, JsonOptions));
+
         return new Documento
         {
-            Id = FakeDb.Documentos.Count + 1,
             nomeArquivo = nomeArquivo,
             Tipo = "NF",
-            ConteudoExtraido = MontarConteudoExtraido(layout, dados),
-            DataUpload = DateTime.Now
+            ConteudoExtraido = conteudoExtraido
         };
     }
 
@@ -103,22 +111,10 @@ public class NotaFiscalProcessingService
         }
     }
 
-    private string MontarConteudoExtraido(TipoLayout layout, DadosNotaFiscal dados)
+    private static DadosNotaFiscal MontarConteudoExtraido(TipoLayout layout, DadosNotaFiscal dados)
     {
-        var builder = new StringBuilder();
+        dados.Layout = layout.ToString();
 
-        builder.Append($"Layout: {layout} |");
-        builder.Append($"NF: {dados.NumeroNota} |");
-        builder.Append($"NomeFornecedor: {dados.NomeFornecedor} |");
-        builder.Append($"CNPJ Fornecedor: {dados.CnpjFornecedor} |");
-        builder.Append($"Valor Total: {dados.ValorTotal} |");
-        builder.Append($"Data de Emissão: {dados.DataEmissao} |");
-
-        if (!string.IsNullOrWhiteSpace(dados.CnpjCliente))
-        {
-            builder.Append($"CNPJ Cliente: {dados.CnpjCliente} |");
-        }
-
-        return builder.ToString();
+        return dados;
     }
 }

@@ -14,7 +14,7 @@ public class ParserRegistryService
         { TipoLayout.NFSeMunicipalVariacao, new NFSeMunicipalParser() }
     };
 
-    public INotaFiscalParser ObterParser(TipoLayout layout)
+    public INotaFiscalParser? ObterParser(TipoLayout layout)
     {
         if (_parsers.ContainsKey(layout))
         {
