@@ -15,6 +15,13 @@ public class FornecedorRepository
             Layout = TipoLayout.DanfeProdutoAntigo
         },
 
+        new Fornecedor
+        {
+            Nome = "Magazine Luiza",
+            Cnpj = "47.960.950/0897-85",
+            Layout = TipoLayout.DanfeProdutoModerno
+        },
+
         // DANFE PADRÃO MODERNO
         new Fornecedor
         {
@@ -55,13 +62,6 @@ public class FornecedorRepository
         {
             Nome = "RKF Nobreaks",
             Cnpj = "07.395.076/0001-02",
-            Layout = TipoLayout.DanfePadraoModerno
-        },
-
-        new Fornecedor
-        {
-            Nome = "Magazine Luiza",
-            Cnpj = "47.960.950/0897-85",
             Layout = TipoLayout.DanfePadraoModerno
         },
 
